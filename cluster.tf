@@ -50,7 +50,7 @@ resource "openstack_compute_secgroup_v2" "kube-master" {
 
   # Access to OpenFaaS
   rule {
-    from_port   = 31113
+    from_port   = 31112
     to_port     = 31119
     ip_protocol = "tcp"
     cidr        = "${var.access_cidr}"
