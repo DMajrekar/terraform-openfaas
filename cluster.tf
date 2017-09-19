@@ -105,7 +105,8 @@ resource "openstack_compute_instance_v2" "kube-master" {
   image_id        = "${var.image_id}"
   flavor_name     = "g1.xsmall"
   key_pair        = "${openstack_compute_keypair_v2.kube.name}"
-  security_groups = ["default", "kube-master"]
+  security_groups = ["default", "${openstack_compute_secgroup_v2.kube-master.name}"]
+
   user_data       = "${data.template_file.cloud-config-master.rendered}"
 
   network {
@@ -135,7 +136,8 @@ resource "openstack_compute_instance_v2" "kube-slave" {
   image_id        = "${var.image_id}"
   flavor_name     = "g1.small"
   key_pair        = "${openstack_compute_keypair_v2.kube.name}"
-  security_groups = ["default", "kube-slave"]
+  security_groups = ["default", "${openstack_compute_secgroup_v2.kube-slave.name}"]
+
   user_data       = "${element(data.template_file.cloud-config-slave.*.rendered, count.index)}"
 
   network {
