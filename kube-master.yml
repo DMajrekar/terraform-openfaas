@@ -1,0 +1,33 @@
+#cloud-config
+
+manage_etc_hosts: localhost
+hostname: kube-master
+
+runcmd:
+  - kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=`ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1` --kubernetes-version stable-1.7 --apiserver-cert-extra-sans=${public-ip} --token ${kube-token}
+  - cp /etc/kubernetes/admin.conf /home/ubuntu/
+  - chown ubuntu:ubuntu /home/ubuntu/admin.conf
+  - echo "export KUBECONFIG=/home/ubuntu/admin.conf" | tee -a /home/ubuntu/.bashrc
+  - KUBECONFIG=/home/ubuntu/admin.conf kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel-rbac.yml
+  - KUBECONFIG=/home/ubuntu/admin.conf kubectl create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+  # Deploy faas-netes
+  - KUBECONFIG=/home/ubuntu/admin.conf kubectl create -f https://raw.githubusercontent.com/alexellis/faas-netes/master/faas.yml
+  - KUBECONFIG=/home/ubuntu/admin.conf kubectl create -f https://raw.githubusercontent.com/alexellis/faas-netes/master/rbac.yml
+  - KUBECONFIG=/home/ubuntu/admin.conf kubectl create -f https://raw.githubusercontent.com/alexellis/faas-netes/master/monitoring.yml
+
+package_upgrade: true
+packages:
+ - kubelet
+ - kubeadm
+ - kubernetes-cni
+ - docker.io
+
+power_state:
+  mode: reboot
+  condition: True
+  delay: "+1"
+
+apt_sources:
+  - source: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+    keyid: 3746C208A7317B0F

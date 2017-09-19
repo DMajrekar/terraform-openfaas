@@ -1,0 +1,21 @@
+#cloud-config
+
+manage_etc_hosts: localhost
+hostname: ${hostname}
+
+runcmd:
+  - kubeadm join --token ${kube-token} ${master-ip}:6443
+
+package_upgrade: true
+packages:
+ - kubelet
+ - kubeadm
+ - kubernetes-cni
+ - docker.io
+
+power_state:
+  mode: reboot
+
+apt_sources:
+  - source: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+    keyid: 3746C208A7317B0F
